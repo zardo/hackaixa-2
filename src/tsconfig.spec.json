@@ -14,5 +14,7 @@
   "include": [
     "**/*.spec.ts",
     "**/*.d.ts"
-  ]
+  ],
+  "types": ["googlemaps"],
+  "moduleResolution": "node"
 }
