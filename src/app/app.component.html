@@ -9,7 +9,8 @@
 
   <div class="lista-mensagens-wrapper">
     <div class="lista-mensagens" #listaMensagens>
-      <div class="item-mensagem {{mensagem.isBot ? 'bot' : 'user'}}" *ngFor="let mensagem of mensagens" @fadeIn #itensMensagem>
+      <div class="item-mensagem {{mensagem.isBot ? 'bot' : 'user'}}" *ngFor="let mensagem of mensagens" @fadeIn
+           #itensMensagem>
         <div class="avatar"><img [src]="mensagem.isBot ? 'assets/bot.png' : 'assets/user.png'"/></div>
         <div class="conteudo mat-body">{{mensagem.conteudo}}</div>
       </div>

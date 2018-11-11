@@ -5,6 +5,7 @@ import {Mensagem} from './models/mensagem';
 import {DialogflowService} from './services/dialogflow.service';
 import {Mapa} from './models/map';
 import {animate, style, transition, trigger} from '@angular/animations';
+import LatLngBounds = google.maps.LatLngBounds;
 
 @Component({
   selector: 'app-root',
@@ -50,17 +51,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     };
     this.map = new google.maps.Map(this.gmapElement.nativeElement, mapProp);
 
-    this.map.addListener('zoom_changed', () => {
-      console.log('Zoom: ' + this.map.getZoom());
-    });
+    setInterval(() => {
+      this.dialogFlowService.getResponse('meus bounds atuais são ' + this.map.getBounds()).subscribe(this.receberMensagemBot.bind(this));
+    }, 3000);
 
     this.map.addListener('click', (e) => {
-      console.log(e);
+      if (e.placeId !== undefined) {
+        this.dialogFlowService.getResponse('o ponto de interesse ' + e.placeId).subscribe(this.receberMensagemBot.bind(this));
+      }
     });
 
-    this.dialogFlowService.getResponse('ola').subscribe(dialogflow => {
-      this.mensagens.push(new Mensagem(dialogflow.result.fulfillment.speech, true, dialogflow.timestamp));
-    });
+    this.dialogFlowService.getResponse('ola').subscribe(this.receberMensagemBot.bind(this));
   }
 
   public enviarMensagem(event): void {
@@ -70,11 +71,26 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.mensagem.timestamp = new Date();
       this.mensagens.push(this.mensagem);
 
-      this.dialogFlowService.getResponse(this.mensagem.conteudo).subscribe(dialogflow => {
-        this.mensagens.push(new Mensagem(dialogflow.result.fulfillment.speech, true, dialogflow.timestamp));
-      });
+      this.dialogFlowService.getResponse(this.mensagem.conteudo).subscribe(this.receberMensagemBot.bind(this));
 
       this.mensagem = new Mensagem('', false);
     }
   }
+
+  private receberMensagemBot(dialogflow): void {
+    dialogflow.result.fulfillment.messages.forEach((mensagem) => {
+      if (mensagem.speech instanceof Array) {
+        mensagem.speech.forEach((speech) => {
+          if (speech !== '') {
+            this.mensagens.push(new Mensagem(speech, true, dialogflow.timestamp));
+          }
+        });
+      } else {
+        if (mensagem.speech !== '') {
+          this.mensagens.push(new Mensagem(mensagem.speech, true, dialogflow.timestamp));
+        }
+      }
+    });
+  }
+
 }

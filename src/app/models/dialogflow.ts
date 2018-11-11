@@ -12,7 +12,7 @@
 
   export class Message {
     type: number;
-    speech: string;
+    speech: string[];
   }
 
   export class Fulfillment {
