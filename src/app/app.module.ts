@@ -1,16 +1,17 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 
-import {AppComponent} from './app.component';
+import {AppComponent, InicioDialogComponent, ParabensDialogComponent} from './app.component';
 import {FormsModule} from '@angular/forms';
 import {HttpClientModule} from '@angular/common/http';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MatFormFieldModule, MatGridListModule, MatInputModule, MatListModule} from '@angular/material';
+import {MatButtonModule, MatDialogModule, MatFormFieldModule, MatGridListModule, MatInputModule, MatListModule} from '@angular/material';
 import {FlexLayoutModule} from '@angular/flex-layout';
+import {APP_BASE_HREF} from '@angular/common';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent, InicioDialogComponent, ParabensDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -21,10 +22,13 @@ import {FlexLayoutModule} from '@angular/flex-layout';
     FlexLayoutModule,
     MatFormFieldModule,
     MatInputModule,
-    MatListModule
+    MatListModule,
+    MatDialogModule,
+    MatButtonModule
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  providers: [{provide: APP_BASE_HREF, useValue: 'teste'}],
+  bootstrap: [AppComponent],
+  entryComponents: [InicioDialogComponent, ParabensDialogComponent]
 })
 export class AppModule {
 }

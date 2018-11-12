@@ -1,11 +1,12 @@
 /// <reference types="@types/googlemaps" />
 
-import {AfterViewInit, Component, ElementRef, Input, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Inject, Input, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {Mensagem} from './models/mensagem';
 import {DialogflowService} from './services/dialogflow.service';
 import {Mapa} from './models/map';
 import {animate, style, transition, trigger} from '@angular/animations';
 import LatLngBounds = google.maps.LatLngBounds;
+import {MAT_DIALOG_DATA, MatDialog, MatDialogRef} from '@angular/material';
 
 @Component({
   selector: 'app-root',
@@ -33,7 +34,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild('listaMensagens') private listaMensagens: ElementRef;
   @ViewChildren('itensMensagem') itensMensagem: QueryList<any>;
 
-  constructor(private dialogFlowService: DialogflowService) {
+  constructor(private dialogFlowService: DialogflowService, public dialog: MatDialog) {
   }
 
   ngAfterViewInit() {
@@ -61,7 +62,15 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     });
 
-    this.dialogFlowService.getResponse('ola').subscribe(this.receberMensagemBot.bind(this));
+    setTimeout(() => {
+      const dialogRef = this.dialog.open(InicioDialogComponent, {
+        width: '400px'
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        this.dialogFlowService.getResponse('ola').subscribe(this.receberMensagemBot.bind(this));
+      });
+    });
   }
 
   public enviarMensagem(event): void {
@@ -80,17 +89,80 @@ export class AppComponent implements OnInit, AfterViewInit {
   private receberMensagemBot(dialogflow): void {
     dialogflow.result.fulfillment.messages.forEach((mensagem) => {
       if (mensagem.speech instanceof Array) {
-        mensagem.speech.forEach((speech) => {
+        for (const speech of mensagem.speech) {
           if (speech !== '') {
+            if (speech.startsWith('Aeee')) {
+              const dialogRef = this.dialog.open(ParabensDialogComponent, {
+                width: '400px'
+              });
+
+              dialogRef.afterClosed().subscribe(result => {
+                this.dialogFlowService.getResponse('ola').subscribe(this.receberMensagemBot.bind(this));
+              });
+            }
+
             this.mensagens.push(new Mensagem(speech, true, dialogflow.timestamp));
           }
-        });
+        }
       } else {
         if (mensagem.speech !== '') {
+          if (mensagem.speech.startsWith('Aeee')) {
+            const dialogRef = this.dialog.open(ParabensDialogComponent, {
+              width: '400px'
+            });
+
+            dialogRef.afterClosed().subscribe(result => {
+              this.dialogFlowService.getResponse('ola').subscribe(this.receberMensagemBot.bind(this));
+            });
+          }
+
           this.mensagens.push(new Mensagem(mensagem.speech, true, dialogflow.timestamp));
         }
       }
     });
+  }
+
+}
+
+@Component({
+  selector: 'app-inicio-dialog',
+  template: '<h1 mat-dialog-title>Caça ao Tesouro Hackaixa</h1>' +
+    '<div mat-dialog-content>' +
+    '  <p>O jogo funciona assim: o bot dá uma dica e você precisa procurar o ponto no mapa até encontrá-lo.</p><p>Quando encontrar, ' +
+    'clique no ponto do mapa.</p><p>Você também pode falar o nome do lugar pro bot que ele responde.</p><p>Boa sorte!</p>' +
+    '</div>' +
+    '<div mat-dialog-actions>' +
+    '  <button mat-raised-button color="primary" (click)="onOkClick()">Beleza! Vamos lá!</button>' +
+    '</div>',
+})
+export class InicioDialogComponent {
+
+  constructor(public dialogRef: MatDialogRef<InicioDialogComponent>) {
+  }
+
+  onOkClick(): void {
+    this.dialogRef.close();
+  }
+
+}
+
+@Component({
+  selector: 'app-parabens-dialog',
+  template: '<h1 mat-dialog-title>Parabéns!</h1>' +
+    '<div mat-dialog-content>' +
+    '  <p>Você encontrou o tesouro Hackaixa.</p><p>Continue se divertindo, jogue novamente.</p>' +
+    '</div>' +
+    '<div mat-dialog-actions>' +
+    '  <button mat-raised-button color="primary" (click)="onOkClick()">Jogar de novo!</button>' +
+    '</div>',
+})
+export class ParabensDialogComponent {
+
+  constructor(public dialogRef: MatDialogRef<InicioDialogComponent>) {
+  }
+
+  onOkClick(): void {
+    this.dialogRef.close();
   }
 
 }
